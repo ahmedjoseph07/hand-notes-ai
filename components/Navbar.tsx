@@ -22,7 +22,7 @@ const Navbar = () => {
             className='size-9 sm:size-10'
           />
           <span className='logo-text font-serif'>
-            hand-notes-<span className='text-brand'>ai</span>
+            HandNotes<span className='text-brand'>AI</span>
           </span>
         </Link>
 

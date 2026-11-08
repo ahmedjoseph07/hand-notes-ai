@@ -1,0 +1,48 @@
+# Claude Code security review: scans every pull request diff for vulnerabilities
+# and comments findings on the PR. Setup, scope and limits: see docs/SECURITY.md.
+# Action docs: https://github.com/anthropics/claude-code-security-review
+name: Security Review
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: read
+  pull-requests: write # post findings as PR comments
+
+# One review per PR; a new push cancels the in-flight run
+concurrency:
+  group: security-review-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  security-review:
+    name: Claude security review
+    # The action is not hardened against prompt injection, so it only reviews PRs
+    # opened from branches in this repository (fork PRs get no secrets anyway).
+    # Review fork PRs manually, or locally with `/security-review` in Claude Code.
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out PR head
+        # Pinned to a commit SHA so a moved tag can't change what runs with our secrets
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 2
+
+      - name: Run Claude Code security review
+        # The action only publishes `main`; pinned to its 2026-11-08 commit.
+        # To update: git ls-remote https://github.com/anthropics/claude-code-security-review refs/heads/main
+        uses: anthropics/claude-code-security-review@0c6a49f1fa56a1d472575da86a94dbc1edb78eda # main
+        with:
+          claude-api-key: ${{ secrets.CLAUDE_API_KEY }}
+          claude-model: claude-opus-5-5
+          comment-pr: true
+          upload-results: true
+          claudecode-timeout: 20
+          custom-security-scan-instructions: .github/security/custom-security-scan-instructions.txt

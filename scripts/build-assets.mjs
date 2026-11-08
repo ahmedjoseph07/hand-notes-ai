@@ -5,7 +5,7 @@
 //   T=$(mktemp -d) && (cd $T && npm init -y >/dev/null && npm i opentype.js@1.3.4 svgo sharp)
 //   # fonts: IBMPlexSerif-{Regular,Medium,SemiBold,Italic}.ttf + MonaSans.ttf
 //   #   from https://github.com/google/fonts (ofl/ibmplexserif, ofl/monasans) → $T/fonts
-//   cp design/assets-src/build-assets.mjs $T/ && node $T/build-assets.mjs $T/fonts public app $T/preview
+//   cp scripts/build-assets.mjs $T/ && node $T/build-assets.mjs $T/fonts public app $T/preview
 //
 // Colors mirror app/globals.css. Change both together.
 // ============================================================================
@@ -260,6 +260,213 @@ function heroIllustration() {
 </svg>`;
 }
 
+// ---- 3b. Library hero desk scene (globe, lamp, notebooks) ----------------
+// Matches .library-hero-card: sits on parchment, transparent background.
+function heroDesk() {
+  const rand = rng(21);
+  const leather = { dark: "#4f2c19", base: "#663820", light: "#8a5232" };
+  const navyCloth = { dark: "#1b2333", base: "#2c3a52", light: "#41526f" };
+  const rust = { dark: "#6e3520", base: "#8c4a2f", light: "#a9603f" };
+  const sageCloth = { dark: "#4f6655", base: "#6f8a74", light: "#8aa38e" };
+
+  const grad = (id, c) =>
+    `<linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${c.light}"/><stop offset="0.55" stop-color="${c.base}"/><stop offset="1" stop-color="${c.dark}"/></linearGradient>`;
+  const gradH = (id, c) =>
+    `<linearGradient id="${id}" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="${c.dark}"/><stop offset="0.45" stop-color="${c.light}"/><stop offset="1" stop-color="${c.base}"/></linearGradient>`;
+
+  // Closed notebook lying flat, seen from the front: page-block or spine
+  const flatPages = (x, y, w, h, fill) => {
+    let lines = "";
+    for (let ly = y + 7; ly < y + h - 5; ly += 2.4) lines += `M${x + 5} ${ly.toFixed(1)}H${x + w - 3}`;
+    return `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="4" fill="url(#${fill})"/>
+    <rect x="${x + 4}" y="${y + 5}" width="${w - 6}" height="${h - 10}" rx="1.5" fill="${C.paper}"/>
+    <path d="${lines}" stroke="#e3d4b6" stroke-width="0.8"/>
+    <path d="M${x + 4} ${y + 5}H${x + w - 2}" stroke="${C.navy}" stroke-opacity="0.12"/>`;
+  };
+  const flatSpine = (x, y, w, h, fill) =>
+    `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="4" fill="url(#${fill})"/>
+    <rect x="${x + 12}" y="${y}" width="3" height="${h}" fill="${C.mustard}" opacity="0.9"/>
+    <rect x="${x + w - 17}" y="${y}" width="3" height="${h}" fill="${C.mustard}" opacity="0.9"/>
+    <rect x="${x + w / 2 - 20}" y="${y + h / 2 - 5}" width="40" height="10" rx="2" fill="${C.lightCream}"/>
+    <path d="M${x + w / 2 - 14} ${y + h / 2}h28" stroke="${C.leather}" stroke-width="1.2" stroke-linecap="round"/>
+    <path d="M${x + 4} ${y + 3}H${x + w - 4}" stroke="#fff" stroke-opacity="0.18"/>`;
+  // Upright notebook (spine facing us)
+  const upright = (x, y, w, h, fill) =>
+    `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="2.5" fill="url(#${fill})"/>
+    <rect x="${x}" y="${y + 9}" width="${w}" height="2.5" fill="${C.mustard}" opacity="0.85"/>
+    <rect x="${x}" y="${y + h - 13}" width="${w}" height="2.5" fill="${C.mustard}" opacity="0.85"/>
+    <rect x="${x + w / 2 - 2.5}" y="${y + 22}" width="5" height="${h * 0.38}" rx="1" fill="${C.lightCream}" opacity="0.85"/>`;
+
+  // Open spiral notebook (perspective)
+  const leftPage = (dy = 0) =>
+    `M246 ${250 + dy}C226 ${244 + dy} 196 ${244 + dy} 172 ${248 + dy}L184 ${212 + dy}C204 ${208 + dy} 228 ${208 + dy} 246 ${214 + dy}Z`;
+  const rightPage = (dy = 0) =>
+    `M246 ${250 + dy}C266 ${244 + dy} 296 ${244 + dy} 320 ${248 + dy}L308 ${212 + dy}C288 ${208 + dy} 264 ${208 + dy} 246 ${214 + dy}Z`;
+  const rule = (side, f) => {
+    const y = 250 - 36 * f;
+    if (side === "L") {
+      const lx = 172 + 12 * f + 5;
+      const ly = 248 - 36 * f;
+      return `M${lx.toFixed(1)} ${ly.toFixed(1)}Q209 ${(y - 5).toFixed(1)} 243 ${y.toFixed(1)}`;
+    }
+    const rx = 320 - 12 * f - 5;
+    const ry = 248 - 36 * f;
+    return `M249 ${y.toFixed(1)}Q283 ${(y - 5).toFixed(1)} ${rx.toFixed(1)} ${ry.toFixed(1)}`;
+  };
+  const fr = [0.2, 0.36, 0.52, 0.68, 0.84];
+  const rules = fr.map((f) => rule("L", f) + rule("R", f)).join("");
+  // handwriting sits just above each rule (small scale)
+  const hw = [
+    scribbleLine(rand, 188, 238, 250 - 36 * 0.84 - 2.2, 0.4),
+    scribbleLine(rand, 186, 240, 250 - 36 * 0.68 - 2.2, 0.4),
+    scribbleLine(rand, 184, 232, 250 - 36 * 0.52 - 2.4, 0.4),
+    scribbleLine(rand, 182, 214, 250 - 36 * 0.36 - 2.6, 0.4),
+    scribbleLine(rand, 254, 300, 250 - 36 * 0.84 - 2.2, 0.4),
+    scribbleLine(rand, 254, 292, 250 - 36 * 0.68 - 2.2, 0.4),
+    scribbleLine(rand, 254, 280, 250 - 36 * 0.52 - 2.4, 0.4),
+  ].join("");
+  let spiral = "";
+  for (let y = 216; y <= 246; y += 4.3) spiral += `<ellipse cx="246" cy="${y.toFixed(1)}" rx="3.2" ry="1.7"/>`;
+
+  // Globe
+  const gx = 196, gy = 112, gr = 56;
+  let grid = "";
+  for (const k of [-0.6, -0.3, 0, 0.3, 0.6]) {
+    const yy = gy + k * gr;
+    const half = Math.sqrt(1 - k * k) * gr;
+    grid += `<ellipse cx="${gx}" cy="${yy.toFixed(1)}" rx="${half.toFixed(1)}" ry="${(half * 0.18).toFixed(1)}"/>`;
+  }
+  for (const k of [0.25, 0.55, 0.85]) grid += `<ellipse cx="${gx}" cy="${gy}" rx="${(gr * k).toFixed(1)}" ry="${gr}"/>`;
+
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="356" height="226" viewBox="16 40 356 226" fill="none">
+  <defs>
+    ${grad("lea", leather)}${grad("nav", navyCloth)}${grad("rus", rust)}
+    ${gradH("lea-v", leather)}${gradH("nav-v", navyCloth)}${gradH("sag-v", sageCloth)}
+    <linearGradient id="brass" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#7d5e27"/><stop offset="0.4" stop-color="#e2bf74"/><stop offset="0.7" stop-color="#b8913f"/><stop offset="1" stop-color="#7d5e27"/>
+    </linearGradient>
+    <linearGradient id="brass-v" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#e8c983"/><stop offset="0.5" stop-color="#b8913f"/><stop offset="1" stop-color="#6f5222"/>
+    </linearGradient>
+    <radialGradient id="ocean" cx="0.36" cy="0.3" r="0.8">
+      <stop offset="0" stop-color="#f6ecd4"/><stop offset="0.55" stop-color="#e2cda2"/><stop offset="1" stop-color="#b8986a"/>
+    </radialGradient>
+    <radialGradient id="globe-shade" cx="0.36" cy="0.3" r="0.75">
+      <stop offset="0.5" stop-color="${C.navy}" stop-opacity="0"/><stop offset="1" stop-color="${C.navy}" stop-opacity="0.32"/>
+    </radialGradient>
+    <radialGradient id="globe-shine" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#fff" stop-opacity="0.6"/><stop offset="1" stop-color="#fff" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="lamp-glow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#ffe6a3" stop-opacity="0.75"/><stop offset="1" stop-color="#ffe6a3" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="page-shade" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="${C.navy}" stop-opacity="0"/><stop offset="1" stop-color="${C.navy}" stop-opacity="0.10"/>
+    </linearGradient>
+    <clipPath id="globe-clip"><circle cx="${gx}" cy="${gy}" r="${gr}"/></clipPath>
+    <filter id="soft" x="-20%" y="-20%" width="140%" height="160%">
+      <feDropShadow dx="0" dy="3" stdDeviation="3" flood-color="${C.navy}" flood-opacity="0.18"/>
+    </filter>
+  </defs>
+
+  <!-- ground shadow -->
+  <ellipse cx="196" cy="252" rx="176" ry="9" fill="${C.navy}" opacity="0.09"/>
+
+  <!-- stacked notebooks (left) -->
+  <g filter="url(#soft)">
+    ${flatPages(22, 214, 132, 28, "lea")}
+    ${flatSpine(30, 190, 118, 24, "nav")}
+    ${flatPages(26, 168, 112, 22, "rus")}
+    <rect x="${26 + 112 - 22}" y="168" width="3.5" height="22" fill="${C.navy}" opacity="0.85"/>
+    <path d="M62 186v20l3.5-3.5 3.5 3.5v-20z" fill="${C.terracotta}"/>
+  </g>
+
+  <!-- upright notebooks (behind lamp) -->
+  <g filter="url(#soft)">
+    ${upright(264, 148, 13, 86, "lea-v")}
+    ${upright(278, 156, 11, 78, "nav-v")}
+    ${upright(290, 142, 14, 92, "sag-v")}
+  </g>
+
+  <!-- globe stand -->
+  <path d="M168 232c0-8 12-12 28-12s28 4 28 12z" fill="url(#brass-v)"/>
+  <ellipse cx="196" cy="232" rx="30" ry="6.5" fill="url(#brass)"/>
+  <rect x="191.5" y="176" width="9" height="46" rx="3" fill="url(#brass)"/>
+  <ellipse cx="196" cy="198" rx="7" ry="3" fill="url(#brass)"/>
+  <ellipse cx="196" cy="179" rx="9" ry="3.5" fill="url(#brass)"/>
+
+  <!-- globe -->
+  <g>
+    <circle cx="${gx}" cy="${gy}" r="${gr}" fill="url(#ocean)"/>
+    <g clip-path="url(#globe-clip)">
+      <g transform="rotate(-20 ${gx} ${gy})" fill="#8b7355" fill-opacity="0.9">
+        <path d="M156 66c10-9 27-7 31 3c3 8-6 12-4 20c2 9 13 10 11 22c-2 10-15 12-17 24c-2 9 4 18-2 25c-7-4-9-14-11-23c-3-10-12-14-12-26c0-10 8-14 6-24c-1-6-7-9-2-21z"/>
+        <path d="M208 58c8-4 19-2 23 6c3 6-2 10 2 16c5 6 15 6 17 16c2 10-6 18-10 26c-4 8-2 19-11 23c-8-2-8-15-12-23c-4-8-15-10-15-20c0-8 8-10 6-18c-1-6-6-10 0-26z"/>
+        <path d="M232 132c6-2 12 2 12 8c0 6-6 9-11 7c-4-2-5-13-1-15z"/>
+        <path d="M176 52c6-3 14-2 16 2c-3 4-12 5-16-2z"/>
+      </g>
+      <g stroke="#7a6240" stroke-opacity="0.28" stroke-width="0.8">${grid}</g>
+      <circle cx="${gx}" cy="${gy}" r="${gr}" fill="url(#globe-shade)"/>
+      <ellipse cx="${gx - 20}" cy="${gy - 24}" rx="22" ry="15" fill="url(#globe-shine)"/>
+    </g>
+    <circle cx="${gx}" cy="${gy}" r="${gr}" stroke="#6f5222" stroke-opacity="0.35"/>
+  </g>
+  <!-- meridian ring -->
+  <path d="M${gx} ${gy - 64}A64 64 0 0 1 ${gx} ${gy + 64}" stroke="url(#brass-v)" stroke-width="5" stroke-linecap="round"/>
+  <circle cx="${gx}" cy="${gy - 64}" r="3.5" fill="#d9b46a"/>
+  <circle cx="${gx}" cy="${gy + 64}" r="3.5" fill="#b8913f"/>
+
+  <!-- warm light pool -->
+  <ellipse cx="252" cy="226" rx="86" ry="30" fill="url(#lamp-glow)"/>
+
+  <!-- desk lamp -->
+  <g>
+    <path d="M280 236c0-9 11-14 24-14s24 5 24 14z" fill="url(#brass-v)"/>
+    <ellipse cx="304" cy="236" rx="24" ry="5" fill="url(#brass)"/>
+    <path d="M305 226L313 114" stroke="url(#brass)" stroke-width="5.5" stroke-linecap="round"/>
+    <path d="M313 114L283 86" stroke="url(#brass)" stroke-width="4.5" stroke-linecap="round"/>
+    <circle cx="313" cy="114" r="5" fill="#b8913f"/>
+    <circle cx="313" cy="114" r="2" fill="#7d5e27"/>
+    <circle cx="283" cy="86" r="4.5" fill="#b8913f"/>
+    <g transform="translate(280 90) rotate(38)">
+      <path d="M-8-8H8L22 22C14 27-14 27-22 22Z" fill="url(#brass)"/>
+      <ellipse cx="0" cy="22" rx="22" ry="5" fill="#fff1c9"/>
+      <ellipse cx="0" cy="22.5" rx="13" ry="3" fill="#fffaf0"/>
+      <rect x="-4" y="-13" width="8" height="6" rx="2" fill="#9c7a3a"/>
+    </g>
+  </g>
+
+  <!-- open spiral notebook -->
+  <g filter="url(#soft)">
+    <path d="M246 257C268 250 298 250 326 254L322 250C296 247 266 248 246 253C226 248 196 247 170 250L166 254C194 250 224 250 246 257Z" fill="url(#lea)"/>
+    <path d="${leftPage(3)}" fill="#ecdfc3"/>
+    <path d="${rightPage(3)}" fill="#ecdfc3"/>
+    <path d="${leftPage(1.5)}" fill="#f4e9d2"/>
+    <path d="${rightPage(1.5)}" fill="#f4e9d2"/>
+    <path d="${leftPage()}" fill="${C.paper}"/>
+    <path d="${rightPage()}" fill="${C.paper}"/>
+  </g>
+  <path d="${leftPage()}" fill="url(#page-shade)"/>
+  <g stroke="#cdbb98" stroke-width="0.8" opacity="0.9"><path d="${rules}"/></g>
+  <path d="M190 210.6L178 247.4" stroke="${C.terracotta}" stroke-opacity="0.35" stroke-width="0.8"/>
+  <g stroke="${C.brown}" stroke-width="0.85" stroke-linecap="round" stroke-linejoin="round"><path d="${hw}"/></g>
+  <!-- tiny doodle: circled star on right page -->
+  <ellipse cx="298" cy="234" rx="8" ry="4.5" stroke="${C.terracotta}" stroke-width="0.9" transform="rotate(-6 298 234)"/>
+  ${sparkle(298, 234, 3.2, C.mustard)}
+  <g stroke="${C.slate}" stroke-width="1.2" fill="${C.paper}">${spiral}</g>
+
+  <!-- pencil -->
+  <g transform="translate(-4 -6) rotate(-14 334 258)">
+    <rect x="296" y="254" width="58" height="7" rx="1.5" fill="${C.mustard}"/>
+    <rect x="296" y="257" width="58" height="1.2" fill="#b58b3a"/>
+    <rect x="290" y="254" width="7" height="7" rx="1.5" fill="${C.terracotta}"/>
+    <rect x="295.5" y="254" width="4" height="7" fill="${C.tan}"/>
+    <path d="M354 254L365 257.5L354 261Z" fill="${C.tan}"/>
+    <path d="M361.5 256.4L365 257.5L361.5 258.6Z" fill="${C.navy}"/>
+  </g>
+</svg>`;
+}
+
 // ---- 4. Empty-state illustration -----------------------------------------
 function emptyNotes() {
   return `<svg xmlns="http://www.w3.org/2000/svg" width="240" height="180" viewBox="0 0 240 180" fill="none">
@@ -297,6 +504,90 @@ function emptyNotes() {
 // ---- 5. Paper patterns ----------------------------------------------------
 const patternDots = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="1" fill="${C.navy}" fill-opacity="0.12"/></svg>`;
 const patternRuled = `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><path d="M0 31.5H32" stroke="${C.navy}" stroke-opacity="0.08"/></svg>`;
+
+// ---- 5b. Note thumbnails: a "photo" of a handwritten page ----------------
+// 320x240 (4:3). Page sits slightly rotated on the parchment desk.
+const NOTE_DOODLES = {
+  // cell with nucleus + mitochondria
+  cell: (ink, accent) => `
+    <ellipse cx="226" cy="120" rx="40" ry="31" fill="${accent}" fill-opacity="0.14" stroke="${ink}" stroke-width="1.6"/>
+    <circle cx="218" cy="116" r="11" fill="${accent}" fill-opacity="0.38" stroke="${ink}" stroke-width="1.4"/>
+    <circle cx="220" cy="114" r="2.6" fill="${ink}"/>
+    <g transform="rotate(22 244 134)"><ellipse cx="244" cy="134" rx="9" ry="4.6" stroke="${ink}" stroke-width="1.2" fill="${C.paper}"/><path d="M237 134c2-2 3 2 5 0s3 2 5 0s2 2 4 0" stroke="${accent}" stroke-width="1"/></g>
+    <circle cx="204" cy="136" r="2" fill="${ink}" opacity="0.6"/><circle cx="236" cy="104" r="1.8" fill="${ink}" opacity="0.6"/>
+    <path d="M214 105L204 82M246 140L262 162" stroke="${ink}" stroke-width="1" stroke-linecap="round"/>`,
+  // block on an incline with force arrows
+  incline: (ink, accent) => `
+    <path d="M186 190H272V118Z" fill="${accent}" fill-opacity="0.12" stroke="${ink}" stroke-width="1.6" stroke-linejoin="round"/>
+    <g transform="rotate(-39.9 232 152)"><rect x="220" y="134" width="24" height="18" fill="${C.paper}" stroke="${ink}" stroke-width="1.5"/></g>
+    <path d="M226 146V180" stroke="${accent}" stroke-width="1.8" stroke-linecap="round"/><path d="M222 174l4 7 4-7" stroke="${accent}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M232 138l-12-14" stroke="${ink}" stroke-width="1.6" stroke-linecap="round"/><path d="M218 130l1-7 7 1" stroke="${ink}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M200 190a14 14 0 0 0-2-9" stroke="${ink}" stroke-width="1"/>`,
+  // timeline with milestones
+  timeline: (ink, accent) => `
+    <path d="M190 140H280" stroke="${ink}" stroke-width="1.8" stroke-linecap="round"/>
+    <path d="M276 136l5 4-5 4" stroke="${ink}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+    ${[198, 218, 240, 262].map((x, i) => `<circle cx="${x}" cy="140" r="4.2" fill="${i === 2 ? accent : C.paper}" stroke="${ink}" stroke-width="1.4"/><path d="M${x} ${i % 2 ? 146 : 134}V${i % 2 ? 160 : 120}" stroke="${ink}" stroke-width="0.9" stroke-dasharray="2 2"/>`).join("")}
+    <path d="M232 96v-20l14 5-14 5" stroke="${accent}" stroke-width="1.5" stroke-linejoin="round" fill="${accent}" fill-opacity="0.3"/>`,
+  // axes + curve + tangent
+  graph: (ink, accent) => `
+    <path d="M196 196V84M196 196H284" stroke="${ink}" stroke-width="1.6" stroke-linecap="round"/>
+    <path d="M192 90l4-7 4 7M278 192l7 4-7 4" stroke="${ink}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M202 186C222 182 238 160 250 132C258 112 266 100 278 94" stroke="${accent}" stroke-width="2" stroke-linecap="round"/>
+    <path d="M222 182L276 104" stroke="${ink}" stroke-width="1.2" stroke-dasharray="4 3" stroke-linecap="round"/>
+    <circle cx="248" cy="137" r="3.4" fill="${accent}" stroke="${ink}" stroke-width="1.2"/>`,
+};
+
+function noteThumb({ seed, ink, accent, doodle, tilt = -2 }) {
+  const rand = rng(seed);
+  const lineYs = [];
+  for (let y = 66; y < 250; y += 18) lineYs.push(y);
+  const ruled = lineYs.map((y) => `M24 ${y}H296`).join("");
+  const heading = scribbleLine(rand, 52, 168, 48, 1.25);
+  const body = lineYs
+    .slice(0, 9)
+    .map((y, i) => {
+      const inDoodle = y > 70 && y < 205;
+      const end = inDoodle ? 176 : 278;
+      const short = rand() < 0.28 ? end - 40 - rand() * 50 : end;
+      const indent = i % 4 === 1 ? 64 : 52;
+      return scribbleLine(rand, indent, short, y - 1.5, 0.82);
+    })
+    .join("");
+  const bullets = lineYs
+    .slice(0, 9)
+    .filter((_, i) => i % 4 === 1)
+    .map((y) => `<circle cx="56" cy="${y - 4}" r="1.8" fill="${ink}"/>`)
+    .join("");
+
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="320" height="240" viewBox="0 0 320 240" fill="none">
+  <defs>
+    <filter id="pg" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="${C.navy}" flood-opacity="0.16"/>
+    </filter>
+  </defs>
+  <rect width="320" height="240" fill="${C.parchment}"/>
+  <g transform="rotate(${tilt} 160 150)">
+    <rect x="18" y="14" width="284" height="290" rx="4" fill="${C.paper}" filter="url(#pg)"/>
+    <path d="${ruled}" stroke="#cfe0ea" stroke-width="1"/>
+    <path d="M42 14V304" stroke="${C.terracotta}" stroke-opacity="0.4" stroke-width="1"/>
+    <rect x="50" y="38" width="${(110 + rand() * 30).toFixed(0)}" height="12" rx="3" fill="${C.mustard}" opacity="0.38"/>
+    <g stroke="${ink}" stroke-linecap="round" stroke-linejoin="round">
+      <path d="${heading}" stroke-width="1.9"/>
+      <path d="${body}" stroke-width="1.25"/>
+    </g>
+    ${bullets}
+    ${NOTE_DOODLES[doodle](ink, accent)}
+  </g>
+</svg>`;
+}
+
+const NOTE_THUMBS = {
+  "notes/biology-cells.svg": { seed: 11, ink: C.navy, accent: C.sage, doodle: "cell", tilt: -2 },
+  "notes/physics-forces.svg": { seed: 23, ink: "#1f3b63", accent: C.terracotta, doodle: "incline", tilt: 1.5 },
+  "notes/history-revolution.svg": { seed: 37, ink: C.brown, accent: C.terracotta, doodle: "timeline", tilt: -1.2 },
+  "notes/calculus-derivatives.svg": { seed: 41, ink: C.navy, accent: C.brown, doodle: "graph", tilt: 2 },
+};
 
 // ---- 6. Open Graph image (1200x630) --------------------------------------
 function ogImage() {
@@ -336,7 +627,7 @@ const svgoCfg = {
 const keepDims = { ...svgoCfg, plugins: [svgoCfg.plugins[0]] };
 
 const write = (dir, name, data) => {
-  fs.mkdirSync(dir, { recursive: true });
+  fs.mkdirSync(path.dirname(path.join(dir, name)), { recursive: true });
   fs.writeFileSync(path.join(dir, name), data);
   return path.join(dir, name);
 };
@@ -351,6 +642,8 @@ const assets = {
   "logo.svg": svg("logo.svg", logoLockup()),
   "logo-dark.svg": svg("logo-dark.svg", logoLockup({ dark: true })),
   "hero-notes.svg": svg("hero-notes.svg", heroIllustration()),
+  "hero-desk.svg": svg("hero-desk.svg", heroDesk()),
+  ...Object.fromEntries(Object.entries(NOTE_THUMBS).map(([name, opts]) => [name, svg(name, noteThumb(opts))])),
   "empty-notes.svg": svg("empty-notes.svg", emptyNotes()),
   "pattern-dots.svg": svg("pattern-dots.svg", patternDots, keepDims),
   "pattern-ruled.svg": svg("pattern-ruled.svg", patternRuled, keepDims),
@@ -393,6 +686,23 @@ const onBg = (src, w, h, bg) =>
     .composite([{ input: Buffer.from(src.replace(/<svg /, `<svg width="${w}" height="${h}" `)), top: 0, left: 0 }])
     .png()
     .toBuffer();
+write(
+  previewDir,
+  "note-thumbs.png",
+  await sharp({ create: { width: 1300, height: 250, channels: 4, background: C.cream } })
+    .composite(
+      await Promise.all(
+        Object.keys(NOTE_THUMBS).map(async (name, i) => ({
+          input: await png(assets[name], 320, 240),
+          top: 5,
+          left: 5 + i * 325,
+        }))
+      )
+    )
+    .png()
+    .toBuffer()
+);
+write(previewDir, "desk-on-parchment.png", await onBg(assets["hero-desk.svg"], 1140, 810, C.parchment));
 write(previewDir, "hero-on-parchment.png", await onBg(assets["hero-notes.svg"], 1120, 880, C.parchment));
 write(previewDir, "empty-on-cream.png", await onBg(assets["empty-notes.svg"], 480, 360, C.cream));
 write(previewDir, "logo-on-cream.png", await onBg(assets["logo.svg"], 0 | 0 || 560, 88, C.cream));

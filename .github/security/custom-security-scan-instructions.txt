@@ -1,0 +1,29 @@
+**Authentication & Authorization (Clerk + Next.js 16 App Router):**
+- Pages, Route Handlers, Server Actions or Server Components that read or change user data without `await auth()` (or `currentUser()`) and a check that `userId` is present
+- Changes to `proxy.ts` (`clerkMiddleware` / `config.matcher`) that leave app routes or `/api` unprotected, or that rely on the proxy alone instead of checking auth where the data is read
+- Notes, note pages, flashcards or books loaded or modified by ID/slug without verifying the record belongs to the signed-in user (IDOR)
+- Ownership or user IDs taken from request bodies, query strings or form fields instead of the server-side Clerk session
+- Clerk webhook handlers that process events without verifying the signature (`verifyWebhook`)
+
+**Caching & Cross-User Data Leakage (`cacheComponents` is enabled):**
+- User-specific data inside `'use cache'` functions or components, or `cacheTag` / `cacheLife` scopes, whose cache key does not include the user, so one user's notes could be served to another
+- Auth-dependent or per-user data rendered into the static shell / prefetched App Shell instead of behind `<Suspense>` request-time rendering
+
+**Secrets & Configuration:**
+- Secrets exposed through `NEXT_PUBLIC_*` variables or imported into Client Components (`'use client'`): `CLERK_SECRET_KEY`, AI provider API keys, database URLs, storage credentials
+- Committed `.env*` files, hard-coded keys or tokens, or secrets written to logs or error responses
+- `next.config.ts` `images.remotePatterns` widened to wildcard or user-controlled hosts (open image proxy / SSRF), or `images.dangerouslyAllowSVG` enabled without a restrictive `contentSecurityPolicy`
+
+**File Uploads (photos, scans and PDFs of handwritten notes):**
+- Uploads accepted without server-side validation of type (magic bytes, not just extension or client MIME), size and page count
+- User-uploaded SVG, HTML or other active content served inline from the app origin (stored XSS)
+- Storage keys or file paths built from user input (path traversal, overwriting another user's files), or uploaded notes readable without authorization (public buckets, unsigned or long-lived URLs)
+
+**AI / LLM Features (transcription, summaries, flashcards, quizzes, chat with notes):**
+- Note text, OCR output or book content placed into prompts so it can override system instructions or trigger tools/actions with the user's or server's privileges (prompt injection with real impact)
+- Model output rendered as HTML without sanitization (`dangerouslySetInnerHTML`, markdown-to-HTML without a sanitizer) leading to XSS
+- AI endpoints that use the server's API key without requiring an authenticated user
+- One user's notes or conversation history included in another user's AI context
+
+**Client-Side Rendering:**
+- `dangerouslySetInnerHTML`, or `href` / `src` values built from user data without allowing only safe protocols (blocks `javascript:` and `data:` URLs)

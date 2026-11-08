@@ -13,13 +13,9 @@ import {
   useUser,
 } from "@clerk/nextjs";
 
+import { NAV_ITEMS } from "@/lib/constants";
 import { cn } from "@/lib/utils";
-
-export const NAV_ITEMS = [
-  { label: "Library", href: "/" },
-  { label: "Add Notes", href: "/notes/new" },
-  { label: "Pricing", href: "/subscriptions" },
-] as const;
+import type { NavMenuProps } from "@/types";
 
 const userButtonAppearance = {
   elements: { avatarBox: "size-9 ring-2 ring-[var(--bg-secondary)]" },
@@ -32,7 +28,7 @@ function UserName() {
   return name ? <span className="nav-user-name">{name}</span> : null;
 }
 
-const isActive = (pathname: string | null, href: string) => {
+const isActive = (pathname: string | null, href: string): boolean => {
   if (!pathname) return false;
   return href === "/"
     ? pathname === "/"
@@ -46,7 +42,7 @@ export function ActiveNavMenu() {
 }
 
 /** Desktop links + actions, and the mobile menu. `pathname: null` = no active state (Suspense fallback). */
-export function NavMenu({ pathname }: { pathname: string | null }) {
+export function NavMenu({ pathname }: NavMenuProps) {
   const [open, setOpen] = useState(false);
   const [lastPathname, setLastPathname] = useState(pathname);
   const panelId = useId();

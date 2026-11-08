@@ -163,7 +163,19 @@ Built in [`components/Navbar.tsx`](../components/Navbar.tsx) (server) + [`compon
 
 ### Cards & surfaces
 - **Book card:** `.book-card` lifts 4px on hover. White cover wrapper (14px) with `.book-card-spine` gradient and a `shadow-book` cover.
-- **Library hero:** parchment `#f3e4c7` card, 14px, with an illustration and white CTAs.
+- **Product focus:** handwritten notes come first (convert, store, study). The book library comes second. The home page order follows this: hero, then **Your Notes**, then **Book Library** (`#books`). Dummy data for both lives in [`lib/constants.ts`](../lib/constants.ts) (`sampleNotes`, `sampleBooks`).
+- **Hero section** ([`components/HeroSection.tsx`](../components/HeroSection.tsx)): parchment `#f3e4c7` card, 14px. Three parts side by side from `lg`, stacked and centered below:
+  - **Left:** `.library-hero-title` "Your Study Space", a two-line `.library-hero-description` (notes first, books second), white `.library-cta-primary` "+ Add new note" (→ `/notes/new`) and a text link "Browse books →" (→ `#books`).
+  - **Center:** `/hero-desk.svg` (max 400px), with separate mobile and desktop variants (`.library-hero-illustration` / `-desktop`).
+  - **Right:** white `.library-steps-card` (236px on desktop): Snap your notes → AI transcribes → Study visually. Keep step descriptions short enough for one line.
+- **Section header** ([`components/SectionHeader.tsx`](../components/SectionHeader.tsx)): `.section-title` + secondary-text description on the left. Brown "View all →" link on the right (`.library-filter-bar` layout).
+- **Note card** ([`components/NoteCard.tsx`](../components/NoteCard.tsx), `<NoteCard note={note} />`), the notes UI, built for studying. The footer comes from the `Note` union in [`types/note.ts`](../types/note.ts): `ReadyNote` shows study tools, `ProcessingNote` shows progress:
+  - White card, 14px, subtle border, `--shadow-soft-sm` → `--shadow-soft` + 4px lift on hover. The whole card is one link (`/notes/[slug]`).
+  - Top: 4:3 photo of the original handwritten page (`/notes/*.svg`) on parchment, zooming 3% on hover. Status pill top-left: green dot "Transcribed" or spinning mustard "Processing".
+  - Body: subject chip (token-tinted: Biology sage, Physics navy, History brown, Calculus mustard), "N pages · date", serif title (1 line), transcription excerpt (2 lines).
+  - Footer: study-tool chips (Summary · N cards · Quiz) when ready, or a brown progress bar ("Building study tools", %) while processing.
+  - Grid: 1 col → 2 cols (`sm`) → 4 cols (`xl`). At `lg`, four columns are too narrow for the chips.
+- **Book card** ([`components/BookCard.tsx`](../components/BookCard.tsx), `<BookCard book={book} />`), the books UI: `.book-card` → white `.book-card-cover-wrapper` with the cover (`.book-card-cover`, `shadow-book`) → `.book-card-title` / `.book-card-author`. Links to `/books/[slug]`. Grid: `.library-books-grid` (2 → 5 cols). Covers come from Open Library (`images.remotePatterns` in `next.config.ts`).
 - **Steps:** white `.library-steps-card`, numbers in cream circles with a navy outline.
 - **Empty state:** `.library-empty-card` on `--bg-secondary`.
 
@@ -214,7 +226,7 @@ Keep durations at 300ms or less and movement small (≤4px).
 
 ## 8. Brand assets (`/public`)
 
-All original vector art, drawn in this palette. No stock or AI imagery. Text in logos and the OG image is converted to real IBM Plex Serif outlines, so it renders identically everywhere without font loading. SVGs are optimized with svgo. PNG and ICO files are exported with sharp. Source: [`design/assets-src/build-assets.mjs`](assets-src/build-assets.mjs) (run instructions at its top).
+All original vector art, drawn in this palette. No stock or AI imagery. Text in logos and the OG image is converted to real IBM Plex Serif outlines, so it renders identically everywhere without font loading. SVGs are optimized with svgo. PNG and ICO files are exported with sharp. Source: [`scripts/build-assets.mjs`](../scripts/build-assets.mjs) (run instructions at its top).
 
 | File | Size | Use |
 | --- | --- | --- |
@@ -226,6 +238,8 @@ All original vector art, drawn in this palette. No stock or AI imagery. Text in 
 | `app/favicon.ico` | 16/32/48 | Legacy favicon (replaces the Next.js default). |
 | `og-image.png` | 1200×630 | Social share card. Wired in `openGraph` / `twitter` metadata. |
 | `hero-notes.svg` | 560×440 | Hero illustration: ruled handwritten page + pen → dotted arrow → typed note card → chat bubbles. Transparent background. Designed for parchment (`.library-hero-card`) or cream. |
+| `hero-desk.svg` | 356×226 | Library hero scene: vintage globe on a brass stand, brass desk lamp casting warm light, leather notebook stack, upright notebooks, open spiral notebook with handwriting, pencil. Gradients for brass, leather and globe shading. Made for the parchment hero card. |
+| `notes/*.svg` | 320×240 | Note thumbnails: "photos" of handwritten pages on the parchment desk (biology-cells, physics-forces, history-revolution, calculus-derivatives). Each has a different ink, a highlighted heading, bullets and a subject diagram. Stand-ins until real uploads exist. |
 | `empty-notes.svg` | 240×180 | Empty state (`.library-empty-card`): stacked blank pages, dashed "+" and a pencil. |
 | `pattern-dots.svg` | 24px tile | Subtle dot-grid texture: `bg-[url(/pattern-dots.svg)]`. |
 | `pattern-ruled.svg` | 32px tile | Ruled-paper texture for note canvases. |
@@ -277,6 +291,8 @@ Add newest entries at the top. Format: date · decision · reason.
 
 | Date | Decision | Reason |
 | --- | --- | --- |
+| 2026-11-08 | Product is notes-first with a secondary book library. `LibraryHero` → `HeroSection` with notes-first copy. Two separate card UIs: `NoteCard` (study-focused: page photo, subject, excerpt, study tools/progress) and `BookCard` (cover-led). Dummy data in `lib/constants.ts` (TypeScript, for typed props). | Notes and books are different objects to study. Each card shows what matters for its type. |
+| 2026-11-08 | Library hero: text / desk illustration / steps card, using the existing `library-*` classes. Notes-first copy. The page offsets from `--navbar-height` instead of `.container`. | Matches the reference layout. `.container` collides with Tailwind's `container` utility (open item 4). |
 | 2026-11-08 | Clerk auth: shadcn theme (`@clerk/ui`) so Clerk reads our tokens, plus the existing `.cl-*` overrides in `globals.css`. Sign-in/up pages use `.auth-wrapper`. | Auth screens match the rest of the app with no separate Clerk palette to maintain. |
 | 2026-11-08 | Navbar: desktop layout from `lg` (1024px), menu button below. Transparent underline on inactive links. | `md` overflowed at 768px. The matching underline stops the active link from shifting. |
 | 2026-11-08 | Replaced Next.js default assets with an original brand set (mark, lockups, hero, empty state, patterns, favicon, OG). Logo text outlined from IBM Plex Serif. | Assets must match the warm literary palette and render the same everywhere. |
