@@ -169,13 +169,13 @@ Built in [`components/Navbar.tsx`](../components/Navbar.tsx) (server) + [`compon
   - **Center:** `/hero-desk.svg` (max 400px), with separate mobile and desktop variants (`.library-hero-illustration` / `-desktop`).
   - **Right:** white `.library-steps-card` (236px on desktop): Snap your notes → AI transcribes → Study visually. Keep step descriptions short enough for one line.
 - **Section header** ([`components/SectionHeader.tsx`](../components/SectionHeader.tsx)): `.section-title` + secondary-text description on the left. Brown "View all →" link on the right (`.library-filter-bar` layout).
-- **Note card** ([`components/NoteCard.tsx`](../components/NoteCard.tsx), `<NoteCard note={note} />`), the notes UI, built for studying. The footer comes from the `Note` union in [`types/note.ts`](../types/note.ts): `ReadyNote` shows study tools, `ProcessingNote` shows progress:
+- **Note card** ([`features/notes/components/NoteCard.tsx`](../features/notes/components/NoteCard.tsx), `<NoteCard note={note} />`), the notes UI, built for studying. The footer comes from the `Note` union in [`types/note.ts`](../types/note.ts): `ReadyNote` shows study tools, `ProcessingNote` shows progress:
   - White card, 14px, subtle border, `--shadow-soft-sm` → `--shadow-soft` + 4px lift on hover. The whole card is one link (`/notes/[slug]`).
   - Top: 4:3 photo of the original handwritten page (`/notes/*.svg`) on parchment, zooming 3% on hover. Status pill top-left: green dot "Transcribed" or spinning mustard "Processing".
   - Body: subject chip (token-tinted: Biology sage, Physics navy, History brown, Calculus mustard), "N pages · date", serif title (1 line), transcription excerpt (2 lines).
   - Footer: study-tool chips (Summary · N cards · Quiz) when ready, or a brown progress bar ("Building study tools", %) while processing.
   - Grid: 1 col → 2 cols (`sm`) → 4 cols (`xl`). At `lg`, four columns are too narrow for the chips.
-- **Book card** ([`components/BookCard.tsx`](../components/BookCard.tsx), `<BookCard book={book} />`), the books UI: `.book-card` → white `.book-card-cover-wrapper` with the cover (`.book-card-cover`, `shadow-book`) → `.book-card-title` / `.book-card-author`. Links to `/books/[slug]`. Grid: `.library-books-grid` (2 → 5 cols). Covers come from Open Library (`images.remotePatterns` in `next.config.ts`).
+- **Book card** ([`features/books/components/BookCard.tsx`](../features/books/components/BookCard.tsx), `<BookCard book={book} />`), the books UI: `.book-card` → white `.book-card-cover-wrapper` with the cover (`.book-card-cover`, `shadow-book`) → `.book-card-title` / `.book-card-author`. Links to `/books/[slug]`. Grid: `.library-books-grid` (2 → 5 cols). Covers come from Open Library (`images.remotePatterns` in `next.config.ts`).
 - **Steps:** white `.library-steps-card`, numbers in cream circles with a navy outline.
 - **Empty state:** `.library-empty-card` on `--bg-secondary`.
 

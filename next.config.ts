@@ -4,6 +4,9 @@ const nextConfig: NextConfig = {
   /* config options here */
   experimental: {
     agentFeedback: true,
+    // Offline detection: Server Actions wait and retry when the network returns,
+    // and `useOffline()` drives the offline banner + autosave status (UI_ENGINEERING.md #6, #20)
+    useOffline: true,
   },
   cacheComponents: true,
   partialPrefetching: true,

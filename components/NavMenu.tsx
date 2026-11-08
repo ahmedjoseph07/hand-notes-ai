@@ -29,10 +29,9 @@ function UserName() {
 }
 
 const isActive = (pathname: string | null, href: string): boolean => {
-  if (!pathname) return false;
-  return href === "/"
-    ? pathname === "/"
-    : pathname === href || pathname.startsWith(`${href}/`);
+  // In-page anchors (e.g. /#features) are never "the current page"
+  if (!pathname || href.includes("#")) return false;
+  return pathname === href || pathname.startsWith(`${href}/`);
 };
 
 /** Reads the current URL. Render inside <Suspense> (see Navbar). */
@@ -120,6 +119,9 @@ export function NavMenu({ pathname }: NavMenuProps) {
           </SignUpButton>
         </Show>
         <Show when="signed-in">
+          <Link href="/library" className="btn-primary">
+            Open app
+          </Link>
           <div className="nav-user-link">
             <UserButton appearance={userButtonAppearance} />
             <UserName />
@@ -183,6 +185,13 @@ export function NavMenu({ pathname }: NavMenuProps) {
               })}
             </nav>
 
+            <Show when="signed-in">
+              <div className="wrapper border-t border-[var(--border-subtle)] pt-4 pb-6">
+                <Link href="/library" onClick={close} className="btn-primary w-full">
+                  Open app
+                </Link>
+              </div>
+            </Show>
             <Show when="signed-out">
               <div className="wrapper flex flex-col gap-3 border-t border-[var(--border-subtle)] pt-4 pb-6">
                 <SignInButton>

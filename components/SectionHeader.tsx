@@ -13,6 +13,7 @@ const SectionHeader = ({ id, title, description, action }: SectionHeaderProps) =
         </h2>
         <p className='text-base text-[var(--text-secondary)]'>{description}</p>
       </div>
+      {action && (
       <Link
         href={action.href}
         className='inline-flex shrink-0 items-center gap-1.5 self-start text-base font-medium text-[var(--color-brand)] underline-offset-4 hover:underline sm:self-end'
@@ -20,6 +21,7 @@ const SectionHeader = ({ id, title, description, action }: SectionHeaderProps) =
         {action.label}
         <ArrowRight className='size-4' aria-hidden />
       </Link>
+      )}
     </div>
   )
 }

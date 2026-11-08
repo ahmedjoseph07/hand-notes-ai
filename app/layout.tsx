@@ -4,9 +4,11 @@ import { IBM_Plex_Serif, Mona_Sans } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 import { shadcn } from "@clerk/ui/themes";
 
+import { NuqsAdapter } from "nuqs/adapters/next/app";
+
 // Internal imports
 import "./globals.css";
-import Navbar from "@/components/Navbar";
+import { Toaster } from "@/components/feedback/Toaster";
 
 const ibmPlexSerif = IBM_Plex_Serif({
   subsets: ["latin"],
@@ -26,7 +28,7 @@ const siteDescription =
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
-  title: "hand-notes-ai",
+  title: { default: "HandNotesAI · Study from your handwritten notes", template: "%s · HandNotesAI" },
   description: siteDescription,
   icons: {
     icon: [{ url: "/icon.svg", type: "image/svg+xml" }],
@@ -54,6 +56,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
+      // data-sidebar is set by an inline script before hydration (app/(app)/layout.tsx)
+      suppressHydrationWarning
       className={`${ibmPlexSerif.variable} ${monaSans.variable} h-full relative font-sans antialiased`}
     >
       <body className="min-h-full flex flex-col">
@@ -61,9 +65,11 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           appearance={{ theme: shadcn }}
           signInUrl="/sign-in"
           signUpUrl="/sign-up"
+          signInFallbackRedirectUrl="/library"
+          signUpFallbackRedirectUrl="/onboarding"
         >
-          <Navbar />
-          {children}
+          <NuqsAdapter>{children}</NuqsAdapter>
+          <Toaster />
         </ClerkProvider>
       </body>
     </html>

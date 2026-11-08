@@ -13,7 +13,7 @@ const ILLUSTRATION = {
 
 const HeroSection = () => {
   return (
-    <section aria-labelledby='hero-title' className='library-hero-card'>
+    <section aria-labelledby='hero-title' className='library-hero-card @container'>
       <div className='library-hero-content'>
         {/* Left: heading, description, CTAs */}
         <div className='library-hero-text'>
@@ -43,7 +43,8 @@ const HeroSection = () => {
         <div className='library-hero-illustration'>
           <Image {...ILLUSTRATION} alt='' className='h-auto w-[280px] sm:w-[320px]' />
         </div>
-        <div className='library-hero-illustration-desktop'>
+        {/* Shown only when the card itself is wide enough (container query), e.g. not beside the app sidebar at 1280px */}
+        <div className='library-hero-illustration-desktop @max-[62rem]:hidden!'>
           <Image {...ILLUSTRATION} alt='' preload className='h-auto w-full max-w-[400px]' />
         </div>
 

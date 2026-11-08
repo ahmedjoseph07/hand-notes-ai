@@ -501,6 +501,40 @@ function emptyNotes() {
 </svg>`;
 }
 
+// ---- 4b. 404 illustration: a note folded into a paper plane, flown off course
+function notFoundArt() {
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="320" height="220" viewBox="0 0 320 220" fill="none">
+  <defs>
+    <filter id="nf" x="-30%" y="-30%" width="160%" height="170%">
+      <feDropShadow dx="0" dy="8" stdDeviation="8" flood-color="${C.navy}" flood-opacity="0.14"/>
+    </filter>
+    <clipPath id="nf-wing"><path d="M118 112L262 52L176 136Z"/></clipPath>
+  </defs>
+  <ellipse cx="160" cy="200" rx="110" ry="8" fill="${C.navy}" opacity="0.06"/>
+  <!-- dotted flight path looping back -->
+  <path d="M28 168C54 120 98 172 86 132C76 98 40 112 58 140C72 162 104 134 118 112" stroke="${C.brown}" stroke-width="2.4" stroke-linecap="round" stroke-dasharray="1 8"/>
+  <!-- paper plane made of ruled paper -->
+  <g filter="url(#nf)">
+    <path d="M118 112L262 52L176 136Z" fill="${C.paper}"/>
+    <path d="M176 136L262 52L190 166Z" fill="${C.lightCream}"/>
+    <path d="M176 136L190 166L170 146Z" fill="${C.tan}"/>
+  </g>
+  <g clip-path="url(#nf-wing)" stroke="#cfe0ea" stroke-width="1.2">
+    <path d="M110 96L270 96M110 108L270 108M110 120L270 120M110 84L270 84M110 72L270 72M110 60L270 60"/>
+  </g>
+  <path d="M136 106L136 128" stroke="${C.terracotta}" stroke-opacity="0.4" stroke-width="1.2" clip-path="url(#nf-wing)"/>
+  <path d="M118 112L262 52L176 136Z" stroke="${C.navy}" stroke-opacity="0.18"/>
+  <path d="M176 136L262 52" stroke="${C.navy}" stroke-opacity="0.22"/>
+  <!-- question mark sparkle cluster -->
+  <path d="M244 112c0-10 16-10 16 0c0 7-8 7-8 14" stroke="${C.brown}" stroke-width="3.2" stroke-linecap="round" fill="none"/>
+  <circle cx="252" cy="134" r="2.4" fill="${C.brown}"/>
+  ${sparkle(282, 92, 7, C.mustard)}
+  ${sparkle(222, 150, 4, C.sage)}
+  ${sparkle(48, 70, 5, C.mustard)}
+  <circle cx="300" cy="150" r="3" fill="${C.terracotta}" opacity="0.6"/>
+</svg>`
+}
+
 // ---- 5. Paper patterns ----------------------------------------------------
 const patternDots = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="1" fill="${C.navy}" fill-opacity="0.12"/></svg>`;
 const patternRuled = `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><path d="M0 31.5H32" stroke="${C.navy}" stroke-opacity="0.08"/></svg>`;
@@ -645,6 +679,7 @@ const assets = {
   "hero-desk.svg": svg("hero-desk.svg", heroDesk()),
   ...Object.fromEntries(Object.entries(NOTE_THUMBS).map(([name, opts]) => [name, svg(name, noteThumb(opts))])),
   "empty-notes.svg": svg("empty-notes.svg", emptyNotes()),
+  "not-found.svg": svg("not-found.svg", notFoundArt()),
   "pattern-dots.svg": svg("pattern-dots.svg", patternDots, keepDims),
   "pattern-ruled.svg": svg("pattern-ruled.svg", patternRuled, keepDims),
   "icon.svg": svg("icon.svg", logoMark()),
@@ -704,6 +739,7 @@ write(
 );
 write(previewDir, "desk-on-parchment.png", await onBg(assets["hero-desk.svg"], 1140, 810, C.parchment));
 write(previewDir, "hero-on-parchment.png", await onBg(assets["hero-notes.svg"], 1120, 880, C.parchment));
+write(previewDir, "not-found-on-cream.png", await onBg(assets["not-found.svg"], 640, 440, C.cream));
 write(previewDir, "empty-on-cream.png", await onBg(assets["empty-notes.svg"], 480, 360, C.cream));
 write(previewDir, "logo-on-cream.png", await onBg(assets["logo.svg"], 0 | 0 || 560, 88, C.cream));
 write(previewDir, "logo-dark.png", await onBg(assets["logo-dark.svg"], 560, 88, C.darkBg));

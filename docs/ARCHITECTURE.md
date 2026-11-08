@@ -78,14 +78,14 @@ flowchart LR
 | Fonts | IBM Plex Serif (headings) + Mona Sans (UI) via `next/font` | Built |
 | Auth | Clerk (`@clerk/nextjs` v7, `@clerk/ui` shadcn theme), `proxy.ts` | Built |
 | Billing / tiers | Clerk Billing (`<PricingTable />`, `has({ feature })`) | Planned |
-| Database | Postgres + Drizzle ORM (type-safe schema → TS types) | Proposed |
+| Database | Postgres + Drizzle ORM (type-safe schema → TS types). Today: in-memory per-user mock repository in `lib/db.ts` with the same interface | Proposed |
 | File storage | S3-compatible object storage with signed URLs (e.g. Cloudflare R2, AWS S3 or Vercel Blob) | Proposed |
 | Background jobs | Durable job runner for transcription pipelines (e.g. Inngest or Trigger.dev) | Proposed |
 | AI | Claude API via `@anthropic-ai/sdk`: `claude-opus-5-5` for handwriting transcription (vision) and study-tool generation | Proposed |
 | Voice | Vapi (`@vapi-ai/web` client SDK + server-side assistant config + webhooks) | Planned |
-| Client state | Zustand (+ `nuqs` for URL state). See [§10](#10-state-management) | Proposed |
-| Forms / validation | Zod schemas shared client/server; React Hook Form for complex forms | Proposed |
-| Tables / palette / toasts | TanStack Table, `cmdk` (shadcn Command), `sonner` | Proposed |
+| Client state | Zustand 5 (`stores/`) + `nuqs` 2 for URL state. See [§10](#10-state-management) | Built |
+| Forms / validation | Zod 4 schemas shared client/server (`features/*/…-schema.ts`); field errors via `ActionResult` | Built |
+| Tables / palette / toasts | TanStack Table **v9** (`lib/data-table.ts` feature set), `cmdk` in a Base UI dialog, `sonner` | Built |
 | Security review | Claude Code Security Review GitHub Action on every PR | Built |
 | Error tracking / analytics | e.g. Sentry; e.g. PostHog | Proposed |
 | Testing | Vitest (units) + Playwright (E2E, with `@clerk/testing`) | Proposed |
@@ -95,21 +95,23 @@ flowchart LR
 
 ## 4. Repository structure
 
-**Today (built):**
+**Today (built):** the target structure below is in place.
 
 ```
-app/                     routes: layout.tsx, page.tsx (home), sign-in/, sign-up/, globals.css, favicon.ico
-components/              Navbar, NavMenu, HeroSection, NoteCard, BookCard, SectionHeader, ui/button
-lib/                     constants.ts (content + dummy data), utils.ts
-types/                   shared types (book, note, navigation, components) + index barrel
-public/                  brand assets (logos, hero, note thumbnails, patterns, OG image)
-scripts/                 build-assets.mjs (asset generator)
-docs/                    this documentation
-.github/                 security review workflow + scan instructions
-proxy.ts                 Clerk middleware
+app/(marketing)/          landing, pricing, affiliates, sign-in, sign-up (top Navbar + footer)
+app/(app)/                library, notes (+ new, trash, [slug]), books (+ [slug]), study (+ review),
+                          voice, referrals, settings, affiliates/dashboard; error.tsx + not-found.tsx
+app/(onboarding)/         onboarding (focused layout)
+app/not-found.tsx · error.tsx · global-error.tsx
+features/                 notes, books, study, voice, billing, account, referrals (components + queries + actions + schemas)
+components/               ui/ (Base UI wrappers), layout/, feedback/, command-palette/, data-table/, marketing/
+hooks/                    use-debounced-callback, use-debounced-value, use-throttled-callback, use-autosave, use-hotkeys
+stores/                   ui-store, confirm-store, selection-store, voice-store (Zustand)
+lib/                      db.ts (mock repository), seed-data.ts, auth.ts, constants.ts, format.ts, data-table.ts
+types/                    all shared types (see TYPESCRIPT.md)
 ```
 
-**Target (planned):** feature modules plus route groups. Move existing files when their feature is built, not all at once.
+**Target:** feature modules plus route groups.
 
 ```
 app/
@@ -157,16 +159,18 @@ types/            shared types (see TYPESCRIPT.md)
 
 | Route | Purpose | Rendering | Status |
 | --- | --- | --- | --- |
-| `/` | Home: hero, Your Notes, Book Library | Static shell + streamed data | Built (dummy data) |
+| `/` | Public landing page (hero, how it works, features, pricing teaser) | Static | Built |
+| `/library` | Student dashboard: greeting, hero, today's stats, recent notes, reading | Shell + streamed data | Built |
 | `/sign-in`, `/sign-up` | Clerk auth | Catch-all, `<Suspense>` | Built |
-| `/onboarding` | First-run data capture (#15) | Dynamic, signed in | Planned |
-| `/notes`, `/notes/new`, `/notes/[slug]` | Notes list, capture/upload, note study view | Shell + streamed user data | Planned |
-| `/books`, `/books/[slug]` | Library, reader + voice | Shell + streamed data | Planned |
-| `/study` | Flashcard review, quizzes | Dynamic | Planned |
-| `/voice` | Voice session history | Dynamic | Planned |
-| `/subscriptions` (or `/pricing`) | Plans via `<PricingTable />` | Static | Planned |
-| `/referrals`, `/affiliates`, `/affiliates/dashboard` | Referral and affiliate program (#16) | Mixed | Planned |
-| `/settings` | Profile, preferences, billing | Dynamic | Planned |
+| `/onboarding` | First-run data capture (#15) | Dynamic, signed in | Built |
+| `/notes`, `/notes/new`, `/notes/[slug]` | Notes list, capture/upload, note study view | Shell + streamed user data | Built |
+| `/books`, `/books/[slug]` | Library, reader + voice | Shell + streamed data | Built |
+| `/study` | Flashcard review, quizzes | Dynamic | Built |
+| `/voice` | Voice session history | Dynamic | Built |
+| `/pricing` | Plan cards + FAQ (static). Clerk `<PricingTable />` once Clerk Billing plans exist | Static | Built (static plans) |
+| `/notes/trash`, `/study/review` | Trash with restore/empty; spaced-repetition review session | Shell + streamed data | Built |
+| `/referrals`, `/affiliates`, `/affiliates/dashboard` | Referral and affiliate program (#16) | Mixed | Built |
+| `/settings` | Profile, preferences, billing | Dynamic | Built |
 | `/api/webhooks/*` | Clerk, billing, Vapi events | Route Handlers, signature-verified | Planned |
 
 ---
@@ -367,13 +371,13 @@ The 20 interaction patterns are product requirements. Each row links to its full
 
 | Decision | Recommendation | Needed before |
 | --- | --- | --- |
-| Client state library | **Zustand** + `nuqs` (see §10) | Sidebar, command palette, voice |
+| ~~Client state library~~ | **Decided:** Zustand + `nuqs` (see §10) | Done |
 | Database + ORM | Postgres (e.g. Neon) + Drizzle | Real notes/books data |
 | File storage | S3-compatible with signed URLs (R2, S3 or Vercel Blob) | Uploads |
 | Background jobs | Durable runner (Inngest or Trigger.dev) | Transcription pipeline |
 | AI models per task | `claude-opus-5-5` for transcription + generation; revisit per task with real cost/quality data | AI pipeline |
-| Forms | Zod + React Hook Form (complex) / `useActionState` (simple) | Onboarding |
-| Table / palette / toasts | TanStack Table, `cmdk`, `sonner` | Notes list, palette |
+| ~~Forms~~ | **Decided:** Zod schemas + controlled forms with blur-then-change validation; React Hook Form not needed so far | Done |
+| ~~Table / palette / toasts~~ | **Decided:** TanStack Table v9, `cmdk`, `sonner` | Done |
 | Billing provider details | Clerk Billing plans and feature keys (Free / Pro) | Tier gates, referrals |
 | Affiliate tracking | In-house referrals first; affiliate provider later if payouts are needed | Affiliate program |
 | Error tracking / analytics | Sentry / PostHog (or equivalents) | Public beta |
@@ -391,4 +395,8 @@ The 20 interaction patterns are product requirements. Each row links to its full
 | 2026-11-08 | Notes-first product; the AI pipeline is asynchronous, idempotent and resumable, with status stored server-side. | Transcription is slow and can fail; users must never lose uploads or progress. |
 | 2026-11-08 | Vapi for voice, with server-built assistant context and quota checks; Vapi SDK loaded lazily. | Keeps keys and context server-side; small initial bundle. |
 | 2026-11-08 | Adopted the 20 UI engineering patterns in UI_ENGINEERING.md. | Consistent, forgiving, fast UX across the app. |
-| 2026-11-08 | Recommended Zustand (+ `nuqs`) for client state; server data stays in RSC caches. Pending confirmation. | Fits RSC; handles SDK-driven realtime voice state; minimal overhead. |
+| 2026-11-08 | Zustand (+ `nuqs`) adopted for client state; server data stays on the server. | Fits RSC; handles SDK-driven realtime voice state; minimal overhead. |
+| 2026-11-08 | Built the full UI: public landing/pricing/affiliates, a signed-in app shell (sidebar, mobile tab bar, ⌘K palette, shortcuts, confirm dialog, read-aloud mini player) and every app route, with skeletons, empty, error and not-found states. | The student platform end-to-end, ready to connect a real database, storage and AI pipeline. |
+| 2026-11-08 | Data layer is an in-memory per-user mock (`lib/db.ts`) seeded with sample notes; uploads simulate the AI pipeline. Queries are uncached until the real database lands (then `'use cache'` + `cacheTag` per user). | Lets the whole UX run today without infrastructure decisions; swapping the repository doesn't touch the UI. |
+| 2026-11-08 | Read-aloud uses the browser's SpeechSynthesis via the voice store; the Vapi tutor is shown as a Pro feature until its keys and SDK are added. | Real listening works now; Vapi plugs into the same store later. |
+| 2026-11-08 | `proxy.ts` protects app routes with `auth.protect()` and captures `?ref=` into an HttpOnly cookie. `lib/auth.ts` calls `connection()` before Clerk's `auth()`. | Defense in depth; Clerk reads the clock before the request, which Cache Components would flag during prerender. |

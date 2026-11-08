@@ -1,7 +1,8 @@
 import Image from 'next/image'
 import Link from 'next/link'
-import { FileText, Layers, ListChecks, LoaderCircle, Sparkles } from 'lucide-react'
+import { FileText, Layers, ListChecks, LoaderCircle, Pin, Sparkles } from 'lucide-react'
 
+import { formatDate } from '@/lib/format'
 import { cn } from '@/lib/utils'
 import type { NoteAccent, NoteCardProps } from '@/types'
 
@@ -13,20 +14,17 @@ const ACCENT_STYLES: Record<NoteAccent, string> = {
   mustard: 'bg-[color-mix(in_oklab,var(--warning)_22%,white)] text-[color-mix(in_oklab,var(--warning)_45%,black)]',
 }
 
-const formatDate = (iso: string): string =>
-  new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' }).format(
-    new Date(iso)
-  )
 
 const chip =
   'inline-flex items-center gap-1 rounded-full border border-[var(--border-subtle)] bg-[var(--bg-primary)] px-2 py-1 text-xs font-medium whitespace-nowrap text-[var(--text-secondary)]'
 
 const NoteCard = ({ note }: NoteCardProps) => {
-  const { slug, title, subject, accent, thumbnail, pages, updatedAt, excerpt } = note
+  const { slug, title, subject, accent, thumbnail, pages, updatedAt, excerpt, pinned } = note
 
   return (
     <Link
       href={`/notes/${slug}`}
+      data-note-link
       className='group flex h-full flex-col overflow-hidden rounded-[14px] border border-[var(--border-subtle)] bg-white shadow-[var(--shadow-soft-sm)] transition-all duration-200 hover:-translate-y-1 hover:shadow-[var(--shadow-soft)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--text-primary)]'
     >
       {/* Original handwritten page */}
@@ -36,8 +34,15 @@ const NoteCard = ({ note }: NoteCardProps) => {
           alt={`Handwritten page: ${title}`}
           fill
           sizes='(min-width: 1280px) 25vw, (min-width: 640px) 50vw, 100vw'
+          unoptimized={thumbnail.startsWith('data:')}
           className='object-cover transition-transform duration-300 group-hover:scale-[1.03]'
         />
+        {pinned && (
+          <span className='absolute top-3 right-3 inline-flex size-7 items-center justify-center rounded-full bg-white/95 text-[var(--color-brand)] shadow-[var(--shadow-soft-sm)]'>
+            <Pin className='size-3.5 fill-current' aria-hidden />
+            <span className='sr-only'>Pinned</span>
+          </span>
+        )}
         <span className='absolute top-3 left-3 inline-flex items-center gap-1.5 rounded-full bg-white/95 px-2.5 py-1 text-xs font-medium text-[var(--text-primary)] shadow-[var(--shadow-soft-sm)]'>
           {note.status === 'ready' ? (
             <>

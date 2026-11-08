@@ -290,36 +290,12 @@ export function useAutosave<T>(options: AutosaveOptions<T>): { status: AutosaveS
 **How.** Two small typed hooks in `hooks/`:
 
 ```ts
-// hooks/use-debounced-callback.ts
-import { useEffect, useMemo, useRef } from 'react'
+// hooks/use-debounced-callback.ts (built): refs + stable callbacks, so the React Compiler can verify it
+export function useDebouncedCallback<A extends unknown[]>(fn: (...args: A) => void, delayMs: number): Debounced<A>
+// returns { run(...args), cancel(), flush() }
 
-export interface Debounced<A extends unknown[]> {
-  (...args: A): void
-  cancel: () => void
-  flush: () => void
-}
-
-export function useDebouncedCallback<A extends unknown[]>(fn: (...args: A) => void, delayMs: number): Debounced<A> {
-  const fnRef = useRef(fn)
-  useEffect(() => { fnRef.current = fn }, [fn])
-
-  const debounced = useMemo(() => {
-    let timer: ReturnType<typeof setTimeout> | undefined
-    let lastArgs: A | undefined
-    const run = () => { if (lastArgs) fnRef.current(...lastArgs); lastArgs = undefined }
-    const d = ((...args: A) => {
-      lastArgs = args
-      clearTimeout(timer)
-      timer = setTimeout(run, delayMs)
-    }) as Debounced<A>
-    d.cancel = () => { clearTimeout(timer); lastArgs = undefined }
-    d.flush = () => { clearTimeout(timer); run() }
-    return d
-  }, [delayMs])
-
-  useEffect(() => debounced.cancel, [debounced]) // cancel on unmount
-  return debounced
-}
+const search = useDebouncedCallback((q: string) => setFilters({ q }), 300)
+<input onChange={(e) => { setQuery(e.target.value); search.run(e.target.value) }} onKeyDown={(e) => e.key === 'Enter' && search.flush()} />
 // hooks/use-debounced-value.ts → const debounced = useDebouncedValue(query, 300)
 ```
 
@@ -343,7 +319,7 @@ export function useDebouncedCallback<A extends unknown[]>(fn: (...args: A) => vo
 - "Regenerate summary" / "Ask AI" buttons: leading-edge throttle (one call per 2s) on top of server rate limits.
 - Analytics events from rapid interactions.
 
-**How.** `useThrottledCallback(fn, intervalMs, { leading: true, trailing: true })` in `hooks/`, same shape as the debounced hook (`cancel`). For visual updates, use a `requestAnimationFrame` throttle (`useRafCallback`) instead of a timer.
+**How.** `useThrottledCallback(fn, intervalMs, { leading: true, trailing: true })` in `hooks/` returns `{ run, cancel }`. The read-aloud engine throttles word-boundary progress updates to ~4/s. For visual updates, use a `requestAnimationFrame` throttle (`useRafCallback`) instead of a timer.
 
 **Rules.**
 - Use a trailing call when the final value matters (save the final scroll position). Use leading-only when the first action matters (button spam).
@@ -732,3 +708,4 @@ export interface NoteFilters {
 | 2026-11-08 | Expected errors are returned as `ActionResult`; unexpected errors use `error.tsx` with `retry()`. | Typed, predictable UX; recovery without a full reload. |
 | 2026-11-08 | Gate by Clerk Billing *features*, enforced on the server; UI shows locked items rather than hiding them. | Plans can change without code changes; discoverability; security. |
 | 2026-11-08 | Soft delete + Undo for routine deletions; confirm and type-to-confirm for irreversible ones. | Prevent accidental data loss without nagging. |
+| 2026-11-08 | All 20 patterns implemented across the app (see ARCHITECTURE.md §5 routes). Debounce/throttle hooks return `{ run, cancel, flush }` objects. | Plain objects of stable callbacks pass the React Compiler lint rules; mutating a callable did not. |
